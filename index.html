@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precision Pregnancy Wheel | Delivery Dial</title>
+    <meta name="description" content="Advanced pregnancy calculator with precise date calibration, dual arrows, and dynamic date displays">
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/48/000000/pregnant.png">
+    <style>
+        :root {
+            --primary: #FF6B9D;
+            --secondary: #C44569;
+            --accent: #4ECDC4;
+            --purple: #A770EF;
+            --orange: #FFA07A;
+            --yellow: #FFD93D;
+            --light: #FFF5F7;
+            --dark: #2C3A47;
+            --gray: #95A5A6;
+            --shadow-soft: 0 10px 30px rgba(255, 107, 157, 0.2);
+            --shadow-hard: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        header {
+            text-align: center;
+            animation: fadeInDown 0.8s ease;
+        }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
+            font-weight: 800;
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        @media (min-width: 1024px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+        
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .panel {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: var(--shadow-hard);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            animation: fadeInUp 0.8s ease both;
+        }
+        
+        .compact-panel {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .bias-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--light) 0%, #FFF 100%);
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .bias-label {
+            font-weight: bold;
+            color: var(--dark);
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            white-space: nowrap;
+        }
+        
+        .bias-slider-container {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .bias-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, 
+                var(--secondary) 0%, 
+                var(--primary) 25%, 
+                var(--accent) 50%, 
+                var(--purple) 75%, 
+                var(--orange) 100%);
+            border-radius: 6px;
+            outline: none;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bias-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+        
+        .bias-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+        
+        .bias-value {
+            font-weight: bold;
+            color: var(--primary);
+            min-width: 70px;
+            text-align: center;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            padding: 6px 12px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .info-item {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(255, 107, 157, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .info-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 157, 0.4);
+        }
+        
+        .info-item:nth-child(2) { background: linear-gradient(135deg, var(--accent) 0%, #36D1DC 100%); }
+        .info-item:nth-child(3) { background: linear-gradient(135deg, var(--purple) 0%, #667eea 100%); }
+        .info-item:nth-child(4) { background: linear-gradient(135deg, var(--orange) 0%, #FF6B9D 100%); }
+        .info-item:nth-child(5) { background: linear-gradient(135deg, var(--yellow) 0%, #FFA07A 100%); }
+        
+        .info-label {
+            font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-value {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+        
+        .wheel {
+            width: 100%;
+            height: 0;
+            padding-bottom: 100%;
+            position: relative;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #FF6B9D 0deg 90deg,
+                #4ECDC4 90deg 180deg,
+                #A770EF 180deg 270deg,
+                #FFA07A 270deg 360deg
+            );
+            box-shadow: var(--shadow-hard), inset 0 0 20px rgba(0, 0, 0, 0.1);
+            user-select: none;
+            transition: transform 0.1s ease-out;
+        }
+        
+        .wheel::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent);
+            z-index: -1;
+        }
+        
+        .wheel-inner {
+            position: absolute;
+            top: 8%;
+            left: 8%;
+            width: 84%;
+            height: 84%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+        
+        .wheel-center {
+            width: clamp(30px, 6vw, 45px);
+            height: clamp(30px, 6vw, 45px);
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(255, 107, 157, 0.6), inset 0 0 8px rgba(0, 0, 0, 0.2);
+            border: 2px solid white;
+        }
+        
+        .pointer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            z-index: 15;
+            cursor: grab;
+            transition: filter 0.2s ease;
+            transform-origin: center center;
+        }
+        
+        .pointer:active { cursor: grabbing; }
+        
+        .pointer-lmp {
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 30px solid var(--secondary);
+            filter: drop-shadow(0 4px 8px rgba(196, 69, 105, 0.5));
+            margin-top: -15px;
+            margin-left: -12px;
+        }
+        
+        .pointer-edd {
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 30px solid var(--accent);
+            filter: drop-shadow(0 4px 8px rgba(78, 205, 196, 0.5));
+            margin-top: -15px;
+            margin-left: -12px;
+        }
+        
+        .pointer.active {
+            filter: brightness(1.4) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+            transform: scale(1.1);
+        }
+        
+        .date-label {
+            position: fixed;
+            background: linear-gradient(135deg, white, rgba(255, 255, 255, 0.95));
+            padding: 6px 12px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 25;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+        
+        .date-label-lmp {
+            color: var(--secondary);
+            border: 2px solid var(--secondary);
+        }
+        
+        .date-label-edd {
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+        
+        .date-label.show { opacity: 1; }
+        
+        .marker {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            top: 0;
+            left: 50%;
+            transform-origin: bottom center;
+            margin-left: -1px;
+        }
+        
+        .marker.major {
+            height: 20px;
+            background: white;
+            width: 2px;
+            margin-left: -1px;
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .marker-label {
+            position: absolute;
+            color: white;
+            font-size: clamp(8px, 2vw, 10px);
+            font-weight: bold;
+            transform-origin: center;
+            text-align: center;
+            width: 40px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+            top: 50%;
+            left: 50%;
+            margin-left: -20px;
+        }
+        
+        .current-date {
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 6px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .current-week {
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            color: var(--gray);
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .mini-calendar {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+        
+        .calendar-header {
+            text-align: center;
+            font-weight: bold;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: clamp(0.8rem, 1.8vw, 1rem);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3px;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+        
+        .calendar-month {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(8px, 1.5vw, 10px);
+            font-weight: 500;
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            flex-direction: column;
+            padding: 4px 2px;
+        }
+        
+        .calendar-month:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .calendar-month.highlight {
+            background: var(--accent);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        .month-label {
+            font-weight: bold;
+            font-size: clamp(6px, 1.2vw, 8px);
+            margin-bottom: 2px;
+        }
+        
+        .month-year {
+            font-size: clamp(5px, 1vw, 7px);
+            opacity: 0.8;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .region-selector {
+            margin-bottom: 15px;
+        }
+        
+        .region-dropdown {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+            color: var(--dark);
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .food-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .food-trimester {
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%);
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid var(--primary);
+        }
+        
+        .food-title {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            text-align: center;
+        }
+        
+        .food-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .food-category {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .category-title {
+            font-weight: bold;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: clamp(0.8rem, 1.8vw, 0.95rem);
+        }
+        
+        .food-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .food-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        
+        .food-item:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 107, 157, 0.1);
+        }
+        
+        .food-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+        }
+        
+        .food-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .food-btn:hover {
+            background: var(--primary);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover { color: var(--primary); }
+        
+        .nutritional-info {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(78, 205, 196, 0.1);
+            border-radius: 8px;
+        }
+        
+        .fun-facts-list {
+            background: rgba(255, 107, 157, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .fun-facts-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .fun-facts-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .fun-facts-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .disclaimer {
+            font-size: 0.8rem;
+            color: var(--gray);
+            font-style: italic;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+        }
+        
+        .celestial-table {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+        
+        .celestial-table h3 {
+            color: var(--dark);
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            background: linear-gradient(135deg, var(--purple), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .celestial-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+        }
+        
+        .celestial-table th {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 6px;
+        }
+        
+        .celestial-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+            transition: background 0.2s ease;
+        }
+        
+        .celestial-table tr:hover td {
+            background: rgba(255, 107, 157, 0.1);
+        }
+        
+        .date-cell {
+            font-weight: bold;
+            color: var(--dark);
+            min-width: 80px;
+        }
+        
+        .sun-cell {
+            color: var(--orange);
+            font-weight: bold;
+        }
+        
+        .moon-cell {
+            color: var(--purple);
+            font-weight: bold;
+        }
+        
+        .zodiac-cell {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .physio-tips {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .physio-trimester {
+            background: linear-gradient(135deg, rgba(167, 112, 239, 0.1) 0%, rgba(102, 126, 234, 0.1) 100%);
+            border-radius: 12px;
+            padding: 15px;
+            border: 2px solid var(--purple);
+        }
+        
+        .physio-title {
+            font-weight: bold;
+            color: var(--purple);
+            margin-bottom: 12px;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            text-align: center;
+        }
+        
+        .physio-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .physio-list li {
+            background: white;
+            margin: 6px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-left: 3px solid var(--purple);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .exercise-icon {
+            font-size: 1.2em;
+            color: var(--purple);
+        }
+        
+        .source-links {
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .source-links a {
+            color: var(--purple);
+            text-decoration: none;
+            margin-right: 10px;
+        }
+        
+        .source-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .instructions {
+            text-align: center;
+            margin-top: 12px;
+            color: white;
+            font-style: italic;
+            line-height: 1.4;
+            font-size: clamp(0.8rem, 1.8vw, 0.9rem);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+            backdrop-filter: blur(8px);
+        }
+        
+        .trimester-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .trimester {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid;
+        }
+        
+        .trimester:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .trimester-1 {
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.15) 0%, rgba(196, 69, 105, 0.1) 100%);
+            border-color: var(--primary);
+        }
+        
+        .trimester-2 {
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.15) 0%, rgba(54, 209, 220, 0.1) 100%);
+            border-color: var(--accent);
+        }
+        
+        .trimester-3 {
+            background: linear-gradient(135deg, rgba(167, 112, 239, 0.15) 0%, rgba(102, 126, 234, 0.1) 100%);
+            border-color: var(--purple);
+        }
+        
+        .trimester-name {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+        }
+        
+        .trimester-1 .trimester-name { color: var(--primary); }
+        .trimester-2 .trimester-name { color: var(--accent); }
+        .trimester-3 .trimester-name { color: var(--purple); }
+        
+        .trimester-dates {
+            color: var(--dark);
+            font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+            line-height: 1.3;
+            font-weight: 500;
+        }
+        
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: white;
+            font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease 0.8s both;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            transition: background 0.3s ease;
+            font-size: clamp(0.7rem, 1.5vw, 0.8rem);
+        }
+        
+        .footer-link:hover {
+            background: var(--primary);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .bias-control {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .bias-slider-container {
+                width: 100%;
+            }
+            
+            .bias-value {
+                margin-left: 0;
+                align-self: center;
+            }
+            
+            .info-panel {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .zodiac-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .food-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .physio-tips {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+            
+            .panel {
+                padding: 12px;
+            }
+            
+            .calendar-grid {
+                max-width: 180px;
+            }
+            
+            .wheel-container {
+                max-width: 300px;
+            }
+        }
+        
+        .dynamic-text {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: clamp(0.6rem, 1.2vw, 0.8rem);
+            font-weight: bold;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 1;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dynamic-text-lmp {
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+        
+        .dynamic-text-edd {
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤰 Precision Pregnancy Wheel</h1>
+            <p class="subtitle">Advanced Calculator with Precise Date Calibration</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="panel">
+                    <div class="bias-control">
+                        <div class="bias-label">📅 Due Date Bias:</div>
+                        <div class="bias-slider-container">
+                            <input type="range" min="-40" max="40" value="0" class="bias-slider" id="bias-slider">
+                        </div>
+                        <div class="bias-value" id="bias-value">±0 days</div>
+                    </div>
+                    
+                    <div class="info-panel">
+                        <div class="info-item">
+                            <div class="info-label">📆 Current Date</div>
+                            <div class="info-value" id="current-date">Loading...</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">🩸 Last Menstrual Period</div>
+                            <div class="info-value" id="lmp-date">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">📊 Weeks Pregnant</div>
+                            <div class="info-value" id="weeks-pregnant">0</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">⏱️ Days Pregnant</div>
+                            <div class="info-value" id="days-pregnant">0</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">🍼 Estimated Due Date</div>
+                            <div class="info-value" id="due-date">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wheel-container">
+                    <div class="pointer pointer-lmp" id="pointer-lmp"></div>
+                    <div class="pointer pointer-edd" id="pointer-edd"></div>
+                    <div class="date-label date-label-lmp" id="date-label-lmp">LMP Date</div>
+                    <div class="date-label date-label-edd" id="date-label-edd">Due Date</div>
+                    <div class="dynamic-text dynamic-text-lmp" id="dynamic-text-lmp">LMP</div>
+                    <div class="dynamic-text dynamic-text-edd" id="dynamic-text-edd">EDD</div>
+                    <div class="wheel" id="pregnancy-wheel">
+                        <div class="wheel-inner">
+                            <div class="current-date" id="wheel-date">Select Date</div>
+                            <div class="current-week" id="wheel-week">Week 0</div>
+                        </div>
+                        <div class="wheel-center"></div>
+                    </div>
+                    <p class="instructions">
+                        🔴 Drag the red arrow to set your LMP date<br>
+                        🟢 Drag the green arrow to set your due date<br>
+                        💫 Watch the dates update dynamically as you move!
+                    </p>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="compact-panel">
+                    <div class="mini-calendar">
+                        <div class="calendar-header">12-Month Pregnancy Overview</div>
+                        <div class="calendar-grid" id="calendar-grid"></div>
+                    </div>
+                </div>
+                
+                <div class="celestial-table">
+                    <h3>🌟 Celestial Calendar</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>☀️ Sun</th>
+                                <th>🌙 Moon</th>
+                                <th>⭐ Zodiac</th>
+                            </tr>
+                        </thead>
+                        <tbody id="celestial-tbody">
+                            <!-- Dynamic content will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="panel">
+                    <h3 style="color: var(--dark); margin-bottom: 12px; text-align: center; font-size: clamp(1rem, 2vw, 1.2rem);">🥗 Foods & Supplements</h3>
+                    <div class="region-selector">
+                        <select class="region-dropdown" id="region-select">
+                            <option value="sub-saharan-africa">Sub-Saharan Africa</option>
+                            <option value="north-africa">North Africa & Middle East</option>
+                            <option value="east-asia">East Asia</option>
+                            <option value="southeast-asia">Southeast Asia</option>
+                            <option value="south-asia">South Asia</option>
+                            <option value="central-asia">Central Asia</option>
+                            <option value="northern-europe">Northern Europe</option>
+                            <option value="western-europe">Western Europe</option>
+                            <option value="eastern-europe">Eastern Europe</option>
+                            <option value="southern-europe">Southern Europe</option>
+                            <option value="north-america">North America</option>
+                            <option value="central-america">Central America</option>
+                            <option value="south-america">South America</option>
+                            <option value="caribbean">Caribbean</option>
+                            <option value="australia-nz">Australia & New Zealand</option>
+                            <option value="melanesia">Melanesia</option>
+                            <option value="micronesia">Micronesia</option>
+                            <option value="polynesia">Polynesia</option>
+                        </select>
+                    </div>
+                    <div class="food-section" id="food-section"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2 style="color: var(--dark); margin-bottom: 15px; text-align: center; font-size: clamp(1.2rem, 2.5vw, 1.6rem);">🌟 Pregnancy Trimesters</h2>
+            <div class="trimester-info">
+                <div class="trimester trimester-1">
+                    <div class="trimester-name">🌱 First Trimester</div>
+                    <div class="trimester-dates" style="margin-bottom: 6px;">Weeks 1-13</div>
+                    <div class="trimester-dates" id="trimester-1-dates">-</div>
+                </div>
+                <div class="trimester trimester-2">
+                    <div class="trimester-name">🌸 Second Trimester</div>
+                    <div class="trimester-dates" style="margin-bottom: 6px;">Weeks 14-26</div>
+                    <div class="trimester-dates" id="trimester-2-dates">-</div>
+                </div>
+                <div class="trimester trimester-3">
+                    <div class="trimester-name">🌺 Third Trimester</div>
+                    <div class="trimester-dates" style="margin-bottom: 6px;">Weeks 27-40</div>
+                    <div class="trimester-dates" id="trimester-3-dates">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2 style="color: var(--dark); margin-bottom: 15px; text-align: center; font-size: clamp(1.2rem, 2.5vw, 1.6rem);">💪 Physiological Tips</h2>
+            <div class="physio-tips">
+                <div class="physio-trimester">
+                    <div class="physio-title">🌱 First Trimester Tips</div>
+                    <ul class="physio-list">
+                        <li><span class="exercise-icon">💊</span>Take prenatal vitamins with folic acid daily</li>
+                        <li><span class="exercise-icon">💧</span>Stay hydrated - drink 8-10 glasses of water daily</li>
+                        <li><span class="exercise-icon">😴</span>Get adequate rest - aim for 7-9 hours of sleep</li>
+                        <li><span class="exercise-icon">🚶‍♀️</span>Practice gentle exercise like walking or swimming</li>
+                        <li><span class="exercise-icon">🚫</span>Avoid alcohol, smoking, and high-mercury fish</li>
+                        <li><span class="exercise-icon">🍽️</span>Manage morning sickness with small, frequent meals</li>
+                        <li><span class="exercise-icon">👩‍⚕️</span>Schedule your first prenatal appointment</li>
+                        <li><span class="exercise-icon">🧘‍♀️</span>Take deep breaths to manage anxiety</li>
+                        <li><span class="exercise-icon">👙</span>Wear comfortable, supportive bras</li>
+                        <li><span class="exercise-icon">🧴</span>Start using pregnancy-safe skincare products</li>
+                    </ul>
+                    <div class="source-links">
+                        <a href="https://www.acog.org" target="_blank">ACOG</a>
+                        <a href="https://www.cdc.gov/pregnancy/" target="_blank">CDC</a>
+                        <a href="https://www.who.int/maternal_child_adolescent/topics/maternal/maternal_perinatal/en/" target="_blank">WHO</a>
+                    </div>
+                </div>
+                
+                <div class="physio-trimester">
+                    <div class="physio-title">🌸 Second Trimester Tips</div>
+                    <ul class="physio-list">
+                        <li><span class="exercise-icon">💊</span>Continue prenatal vitamins and add calcium if needed</li>
+                        <li><span class="exercise-icon">🤸‍♀️</span>Practice kegel exercises to strengthen pelvic floor</li>
+                        <li><span class="exercise-icon">😴</span>Sleep on your side, preferably left side</li>
+                        <li><span class="exercise-icon">⚖️</span>Monitor weight gain - aim for 1-2 pounds per week</li>
+                        <li><span class="exercise-icon">🧘‍♀️</span>Stay active with prenatal yoga or swimming</li>
+                        <li><span class="exercise-icon">📋</span>Start planning your birth preferences</li>
+                        <li><span class="exercise-icon">🎓</span>Consider prenatal classes</li>
+                        <li><span class="exercise-icon">🩺</span>Monitor for signs of gestational diabetes</li>
+                        <li><span class="exercise-icon">🛏️</span>Use pregnancy pillows for better sleep</li>
+                        <li><span class="exercise-icon">👶</span>Begin talking to your baby</li>
+                    </ul>
+                    <div class="source-links">
+                        <a href="https://www.mayoclinic.org/healthy-lifestyle/pregnancy-week-by-week" target="_blank">Mayo Clinic</a>
+                        <a href="https://www.babycenter.com" target="_blank">BabyCenter</a>
+                        <a href="https://www.marchofdimes.org" target="_blank">March of Dimes</a>
+                    </div>
+                </div>
+                
+                <div class="physio-trimester">
+                    <div class="physio-title">🌺 Third Trimester Tips</div>
+                    <ul class="physio-list">
+                        <li><span class="exercise-icon">🎒</span>Pack your hospital bag by 36 weeks</li>
+                        <li><span class="exercise-icon">🫁</span>Practice breathing exercises for labor</li>
+                        <li><span class="exercise-icon">👶</span>Monitor baby's movements daily</li>
+                        <li><span class="exercise-icon">🛏️</span>Sleep with extra pillows for comfort</li>
+                        <li><span class="exercise-icon">💧</span>Stay hydrated to prevent swelling</li>
+                        <li><span class="exercise-icon">🤱</span>Prepare for breastfeeding</li>
+                        <li><span class="exercise-icon">⚠️</span>Watch for signs of preterm labor</li>
+                        <li><span class="exercise-icon">🔬</span>Get Group B Strep test around 36 weeks</li>
+                        <li><span class="exercise-icon">👨‍👩‍👧‍👦</span>Prepare siblings for new baby arrival</li>
+                        <li><span class="exercise-icon">😴</span>Rest as much as possible before delivery</li>
+                    </ul>
+                    <div class="source-links">
+                        <a href="https://www.whattoexpect.com" target="_blank">What to Expect</a>
+                        <a href="https://www.healthline.com/health/pregnancy" target="_blank">Healthline</a>
+                        <a href="https://www.webmd.com/baby/default.htm" target="_blank">WebMD</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>✨ Precision Pregnancy Wheel | For informational purposes only | Consult healthcare provider for medical advice ✨</p>
+            <a href = "/readme.html"><p> readMe ;)</p></a>
+            <div class="footer-links">
+                <a href="https://www.who.int/health-topics/maternal-health" class="footer-link" target="_blank">WHO Maternal Health</a>
+                <a href="https://www.acog.org" class="footer-link" target="_blank">ACOG Guidelines</a>
+                <a href="https://www.cdc.gov/pregnancy/" class="footer-link" target="_blank">CDC Pregnancy</a>
+                <a href="https://www.marchofdimes.org" class="footer-link" target="_blank">March of Dimes</a>
+                <a href="https://www.babycenter.com" class="footer-link" target="_blank">BabyCenter</a>
+                <a href="https://www.whattoexpect.com" class="footer-link" target="_blank">What to Expect</a>
+                <a href="https://www.mayoclinic.org/healthy-lifestyle/pregnancy-week-by-week" class="footer-link" target="_blank">Mayo Clinic</a>
+                <a href="https://www.healthline.com/health/pregnancy" class="footer-link" target="_blank">Healthline</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for food details -->
+    <div id="food-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Food Details</h2>
+            <div id="modal-body">
+                <div class="nutritional-info">
+                    <h3>Nutritional Composition:</h3>
+                    <p id="modal-nutrition">Nutritional information here...</p>
+                </div>
+                
+                <div class="fun-facts-list">
+                    <h3>7 Fun Nutritional Facts:</h3>
+                    <ul id="modal-fun-facts">
+                        <li>Loading fun facts...</li>
+                    </ul>
+                </div>
+                
+                <h3>Recipe:</h3>
+                <p id="modal-recipe">Recipe details here...</p>
+                
+                <h3>Precautions:</h3>
+                <p id="modal-precautions">Precautions here...</p>
+                
+                <h3>Helpful Links:</h3>
+                <div id="modal-links">Links here...</div>
+                
+                <div class="disclaimer">
+                    <strong>Disclaimer:</strong> This information is sourced from various health organizations and is for educational purposes only. Always consult with your healthcare provider before making dietary changes during pregnancy.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const wheel = document.getElementById('pregnancy-wheel');
+            const pointerLmp = document.getElementById('pointer-lmp');
+            const pointerEdd = document.getElementById('pointer-edd');
+            const dateLabelLmp = document.getElementById('date-label-lmp');
+            const dateLabelEdd = document.getElementById('date-label-edd');
+            const dynamicTextLmp = document.getElementById('dynamic-text-lmp');
+            const dynamicTextEdd = document.getElementById('dynamic-text-edd');
+            const wheelDate = document.getElementById('wheel-date');
+            const wheelWeek = document.getElementById('wheel-week');
+            const currentDateEl = document.getElementById('current-date');
+            const lmpDateEl = document.getElementById('lmp-date');
+            const weeksPregnantEl = document.getElementById('weeks-pregnant');
+            const daysPregnantEl = document.getElementById('days-pregnant');
+            const dueDateEl = document.getElementById('due-date');
+            const biasSlider = document.getElementById('bias-slider');
+            const biasValue = document.getElementById('bias-value');
+            const trimester1Dates = document.getElementById('trimester-1-dates');
+            const trimester2Dates = document.getElementById('trimester-2-dates');
+            const trimester3Dates = document.getElementById('trimester-3-dates');
+            const calendarGrid = document.getElementById('calendar-grid');
+            const regionSelect = document.getElementById('region-select');
+            const foodSection = document.getElementById('food-section');
+            const modal = document.getElementById('food-modal');
+            const closeModal = document.getElementsByClassName('close')[0];
+            const celestialTbody = document.getElementById('celestial-tbody');
+            
+            const NOW = new Date();
+            const MIN_DATE = new Date(NOW);
+            MIN_DATE.setFullYear(MIN_DATE.getFullYear() - 1);
+            const MAX_DATE = new Date(NOW);
+            MAX_DATE.setFullYear(MAX_DATE.getFullYear() + 1);
+            const DATE_RANGE_DAYS = Math.floor((MAX_DATE - MIN_DATE) / (1000 * 60 * 60 * 24));
+            const DEGREES_PER_DAY = 360 / DATE_RANGE_DAYS;
+            const PREGNANCY_DAYS = 280;
+            
+            let lmpRotation = 180;
+            let eddRotation = (lmpRotation + (PREGNANCY_DAYS * DEGREES_PER_DAY)) % 360;
+            let activePointer = null;
+            let isDragging = false;
+            let dateBias = 0;
+            
+            // Regional food data with comprehensive information
+            const regionalFoods = {
+                'sub-saharan-africa': {
+                    'First Trimester': {
+                        'Urban Foods': [
+                            { name: 'Sweet Potatoes', icon: '🍠' },
+                            { name: 'Fortified Cereals', icon: '🥣' },
+                            { name: 'Lean Beef', icon: '🥩' },
+                            { name: 'Canned Sardines', icon: '🐟' },
+                            { name: 'Yogurt', icon: '🥛' },
+                            { name: 'Spinach', icon: '🥬' },
+                            { name: 'Eggs', icon: '🥚' },
+                            { name: 'Avocados', icon: '🥑' },
+                            { name: 'Lentils', icon: '🫘' },
+                            { name: 'Bananas', icon: '🍌' }
+                        ],
+                        'Rural Foods': [
+                            { name: 'Moringa Leaves', icon: '🌿' },
+                            { name: 'Baobab Fruit', icon: '🌳' },
+                            { name: 'Millet Porridge', icon: '🥣' },
+                            { name: 'Free-range Chicken', icon: '🐔' },
+                            { name: 'Fresh Fish', icon: '🐟' },
+                            { name: 'Wild Leafy Greens', icon: '🥬' },
+                            { name: 'Local Nuts', icon: '🥜' },
+                            { name: 'Palm Fruits', icon: '🌴' },
+                            { name: 'Indigenous Grains', icon: '🌾' },
+                            { name: 'Wild Honey', icon: '🍯' }
+                        ],
+                        'Seasonal Fruits': [
+                            { name: 'Mangoes', icon: '🥭' },
+                            { name: 'Papayas', icon: '🍈' },
+                            { name: 'Oranges', icon: '🍊' },
+                            { name: 'Guavas', icon: '🍈' }
+                        ]
+                    },
+                    'Second Trimester': {
+                        'Urban Foods': [
+                            { name: 'Quinoa', icon: '🌾' },
+                            { name: 'Tofu', icon: '🧈' },
+                            { name: 'Salmon', icon: '🐟' },
+                            { name: 'Greek Yogurt', icon: '🥛' },
+                            { name: 'Almonds', icon: '🥜' },
+                            { name: 'Broccoli', icon: '🥦' },
+                            { name: 'Brown Rice', icon: '🍚' },
+                            { name: 'Cheese', icon: '🧀' },
+                            { name: 'Chickpeas', icon: '🫘' },
+                            { name: 'Berries', icon: '🫐' }
+                        ],
+                        'Rural Foods': [
+                            { name: 'Cassava', icon: '🥔' },
+                            { name: 'African Yam', icon: '🍠' },
+                            { name: 'Groundnuts', icon: '🥜' },
+                            { name: 'Plantains', icon: '🍌' },
+                            { name: 'Local Fish', icon: '🐟' },
+                            { name: 'Traditional Stews', icon: '🍲' },
+                            { name: 'Wild Vegetables', icon: '🥬' },
+                            { name: 'Native Beans', icon: '🫘' },
+                            { name: 'Fermented Foods', icon: '🥣' },
+                            { name: 'Herbal Teas', icon: '🫖' }
+                        ],
+                        'Seasonal Fruits': [
+                            { name: 'Watermelons', icon: '🍉' },
+                            { name: 'Pineapples', icon: '🍍' },
+                            { name: 'Passion Fruits', icon: '🥭' },
+                            { name: 'African Plums', icon: '🍇' }
+                        ]
+                    },
+                    'Third Trimester': {
+                        'Urban Foods': [
+                            { name: 'Iron-rich Cereal', icon: '🥣' },
+                            { name: 'Lean Meat', icon: '🥩' },
+                            { name: 'Fortified Milk', icon: '🥛' },
+                            { name: 'Whole Grain Bread', icon: '🍞' },
+                            { name: 'Citrus Fruits', icon: '🍊' },
+                            { name: 'Dark Leafy Greens', icon: '🥬' },
+                            { name: 'Nuts & Seeds', icon: '🥜' },
+                            { name: 'Legumes', icon: '🫘' },
+                            { name: 'Fatty Fish', icon: '🐟' },
+                            { name: 'Dried Fruits', icon: '🍇' }
+                        ],
+                        'Rural Foods': [
+                            { name: 'African Spinach', icon: '🥬' },
+                            { name: 'Palm Oil', icon: '🌴' },
+                            { name: 'Fresh Tilapia', icon: '🐟' },
+                            { name: 'Cowpeas', icon: '🫘' },
+                            { name: 'Traditional Porridge', icon: '🥣' },
+                            { name: 'Wild Game', icon: '🦌' },
+                            { name: 'Root Vegetables', icon: '🥔' },
+                            { name: 'Indigenous Fruits', icon: '🍈' },
+                            { name: 'Herbal Medicines', icon: '🌿' },
+                            { name: 'Natural Water', icon: '💧' }
+                        ],
+                        'Seasonal Fruits': [
+                            { name: 'Dates', icon: '🌰' },
+                            { name: 'Figs', icon: '🍈' },
+                            { name: 'Apricots', icon: '🍑' },
+                            { name: 'Pomegranates', icon: '🍎' }
+                        ]
+                    }
+                },
+                'east-asia': {
+                    'First Trimester': {
+                        'Urban Foods': [
+                            { name: 'Tofu', icon: '🧈' },
+                            { name: 'Seaweed', icon: '🌊' },
+                            { name: 'Green Tea', icon: '🍵' },
+                            { name: 'Miso Soup', icon: '🍲' },
+                            { name: 'Brown Rice', icon: '🍚' },
+                            { name: 'Edamame', icon: '🫘' },
+                            { name: 'Fish', icon: '🐟' },
+                            { name: 'Vegetables', icon: '🥬' },
+                            { name: 'Ginger', icon: '🫚' },
+                            { name: 'Mushrooms', icon: '🍄' }
+                        ],
+                        'Rural Foods': [
+                            { name: 'Rice Porridge', icon: '🍚' },
+                            { name: 'Local Fish', icon: '🐟' },
+                            { name: 'Wild Vegetables', icon: '🥬' },
+                            { name: 'Herbal Teas', icon: '🍵' },
+                            { name: 'Fermented Foods', icon: '🥣' },
+                            { name: 'Traditional Soups', icon: '🍲' },
+                            { name: 'Seasonal Greens', icon: '🥬' },
+                            { name: 'Local Grains', icon: '🌾' },
+                            { name: 'Fresh Water Fish', icon: '🐟' },
+                            { name: 'Mountain Vegetables', icon: '🥕' }
+                        ],
+                        'Seasonal Fruits': [
+                            { name: 'Asian Pears', icon: '🍐' },
+                            { name: 'Persimmons', icon: '🍊' },
+                            { name: 'Lychees', icon: '🍇' },
+                            { name: 'Dragon Fruit', icon: '🐉' }
+                        ]
+                    },
+                    'Second Trimester': {
+                        'Urban Foods': [
+                            { name: 'Quinoa', icon: '🌾' },
+                            { name: 'Salmon', icon: '🐟' },
+                            { name: 'Yogurt', icon: '🥛' },
+                            { name: 'Nuts', icon: '🥜' },
+                            { name: 'Avocado', icon: '🥑' },
+                            { name: 'Broccoli', icon: '🥦' },
+                            { name: 'Sweet Potato', icon: '🍠' },
+                            { name: 'Blueberries', icon: '🫐' },
+                            { name: 'Spinach', icon: '🥬' },
+                            { name: 'Eggs', icon: '🥚' }
+                        ],
+                        'Rural Foods': [
+                            { name: 'Wild Rice', icon: '🍚' },
+                            { name: 'River Fish', icon: '🐟' },
+                            { name: 'Mountain Herbs', icon: '🌿' },
+                            { name: 'Traditional Stews', icon: '🍲' },
+                            { name: 'Fermented Vegetables', icon: '🥬' },
+                            { name: 'Local Poultry', icon: '🐔' },
+                            { name: 'Wild Mushrooms', icon: '🍄' },
+                            { name: 'Natural Springs Water', icon: '💧' },
+                            { name: 'Seasonal Roots', icon: '🥕' },
+                            { name: 'Traditional Medicines', icon: '🌿' }
+                        ],
+                        'Seasonal Fruits': [
+                            { name: 'Mangosteen', icon: '🍇' },
+                            { name: 'Rambutan', icon: '🍈' },
+                            { name: 'Durian', icon: '🥭' },
+                            { name: 'Jackfruit', icon: '🍈' }
+                        ]
+                    },
+                    'Third Trimester': {
+                        'Urban Foods': [
+                            { name: 'Iron-rich Foods', icon: '🥩' },
+                            { name: 'Calcium Sources', icon: '🥛' },
+                            { name: 'Whole Grains', icon: '🌾' },
+                            { name: 'Lean Protein', icon: '🐟' },
+                            { name: 'Vitamin C Foods', icon: '🍊' },
+                            { name: 'Fiber-rich Foods', icon: '🥗' },
+                            { name: 'Healthy Fats', icon: '🥑' },
+                            { name: 'Folate Sources', icon: '🥬' },
+                            { name: 'Probiotic Foods', icon: '🥛' },
+                            { name: 'Hydrating Foods', icon: '🍉' }
+                        ],
+                        'Rural Foods': [
+                            { name: 'Traditional Grains', icon: '🌾' },
+                            { name: 'Local Proteins', icon: '🐟' },
+                            { name: 'Wild Vegetables', icon: '🥬' },
+                            { name: 'Natural Remedies', icon: '🌿' },
+                            { name: 'Bone Broths', icon: '🍲' },
+                            { name: 'Fermented Foods', icon: '🥣' },
+                            { name: 'Seasonal Produce', icon: '🥕' },
+                            { name: 'Medicinal Teas', icon: '🍵' },
+                            { name: 'Traditional Sweets', icon: '🍯' },
+                            { name: 'Pure Water Sources', icon: '💧' }
+                        ],
+                        'Seasonal Fruits': [
+                            { name: 'Winter Citrus', icon: '🍊' },
+                            { name: 'Pomelo', icon: '🍊' },
+                            { name: 'Asian Apple', icon: '🍎' },
+                            { name: 'Winter Melon', icon: '🍈' }
+                        ]
+                    }
+                }
+            };
+
+            const foodDetails = {
+                'Sweet Potatoes': {
+                    nutrition: 'High in beta-carotene (vitamin A), fiber, potassium, vitamin C, and folate. One medium sweet potato provides 400% daily vitamin A needs.',
+                    funFacts: [
+                        'Sweet potatoes are not related to regular potatoes',
+                        'They contain more fiber than oatmeal',
+                        'Orange varieties have more beta-carotene than carrots',
+                        'They help regulate blood sugar despite being sweet',
+                        'Purple sweet potatoes contain anthocyanins (antioxidants)',
+                        'They can be stored for 6-10 months properly',
+                        'Native to Central and South America, not Africa'
+                    ],
+                    recipe: 'Wash and pierce sweet potatoes. Bake at 400°F for 45-60 minutes until tender. Serve with a sprinkle of cinnamon and a dollop of Greek yogurt.',
+                    precautions: 'High in vitamin A - excessive consumption may lead to carotenemia (harmless orange skin discoloration). Limit to 1-2 medium sweet potatoes daily.',
+                    links: [
+                        'https://www.who.int/nutrition/topics/ida/en/',
+                        'https://www.healthline.com/nutrition/foods/sweet-potatoes',
+                        'https://www.acog.org/womens-health/faqs/nutrition-during-pregnancy'
+                    ]
+                },
+                'Baobab Fruit': {
+                    nutrition: 'Exceptional source of vitamin C (6x more than oranges), fiber, potassium, magnesium, iron, and antioxidants. High in prebiotics for gut health.',
+                    funFacts: [
+                        'Baobab trees can live for over 2,000 years',
+                        'The fruit naturally dehydrates on the tree',
+                        'Contains 6 times more vitamin C than oranges',
+                        'Has more antioxidants than goji berries',
+                        'Called "Tree of Life" in Africa',
+                        'The powder doesn\'t need processing - it\'s naturally dehydrated',
+                        'Baobab trees store up to 32,000 gallons of water in their trunks'
+                    ],
+                    recipe: 'Mix 1-2 teaspoons of baobab powder with water, smoothies, or yogurt. Start with small amounts as it has a tangy, citrusy flavor.',
+                    precautions: 'Start with small amounts (1 tsp) to assess digestive tolerance. High fiber content may cause stomach upset if consumed in large quantities.',
+                    links: [
+                        'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4665266/',
+                        'https://www.who.int/nutrition/topics/micronutrients/en/',
+                        'https://www.healthline.com/nutrition/baobab-fruit'
+                    ]
+                },
+                'Moringa Leaves': {
+                    nutrition: 'Powerhouse of nutrients: 7x more vitamin C than oranges, 4x more vitamin A than carrots, 4x more calcium than milk, and 3x more potassium than bananas.',
+                    funFacts: [
+                        'Called "miracle tree" for its nutritional density',
+                        'All parts of the tree are edible and nutritious',
+                        'Contains all 9 essential amino acids',
+                        'Grows in arid conditions where other crops fail',
+                        'Used in traditional medicine for over 4,000 years',
+                        'The seeds can purify water naturally',
+                        'NASA considers it ideal for space travel nutrition'
+                    ],
+                    recipe: 'Fresh leaves can be cooked like spinach in stews. Dried moringa powder (1 tsp) can be added to soups, smoothies, or tea.',
+                    precautions: 'Avoid root and bark during pregnancy. Use only leaves. Start with small amounts as it may have mild laxative effects.',
+                    links: [
+                        'https://www.who.int/nutrition/topics/complementary_feeding/en/',
+                        'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3892446/',
+                        'https://www.fao.org/traditional-crops/moringa/en/'
+                    ]
+                }
+            };
+            
+            currentDateEl.textContent = formatDate(NOW);
+            createWheelMarkers();
+            generateCalendar();
+            updateDisplay();
+            updateFoodSection();
+            updateCelestialTable();
+            
+            // Event listeners
+            pointerLmp.addEventListener('mousedown', (e) => startDrag(e, 'lmp'));
+            pointerEdd.addEventListener('mousedown', (e) => startDrag(e, 'edd'));
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            
+            pointerLmp.addEventListener('touchstart', (e) => startDrag(e.touches[0], 'lmp'), {passive: false});
+            pointerEdd.addEventListener('touchstart', (e) => startDrag(e.touches[0], 'edd'), {passive: false});
+            document.addEventListener('touchmove', (e) => drag(e.touches[0]), {passive: false});
+            document.addEventListener('touchend', stopDrag);
+            
+            biasSlider.addEventListener('input', updateBias);
+            regionSelect.addEventListener('change', updateFoodSection);
+            
+            closeModal.onclick = () => modal.style.display = 'none';
+            window.onclick = (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+            
+            function startDrag(e, pointer) {
+                if (e.preventDefault) e.preventDefault();
+                activePointer = pointer;
+                isDragging = true;
+                
+                if (activePointer === 'lmp') {
+                    pointerLmp.classList.add('active');
+                    dateLabelLmp.classList.add('show');
+                } else {
+                    pointerEdd.classList.add('active');
+                    dateLabelEdd.classList.add('show');
+                }
+            }
+            
+            function drag(e) {
+                if (!isDragging || !activePointer) return;
+                if (e.preventDefault) e.preventDefault();
+                
+                const rect = wheel.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const clientX = e.clientX !== undefined ? e.clientX : e.pageX;
+                const clientY = e.clientY !== undefined ? e.clientY : e.pageY;
+                
+                let angle = Math.atan2(clientY - centerY, clientX - centerX) * 180 / Math.PI;
+                angle = (angle + 90) % 360;
+                if (angle < 0) angle += 360;
+                
+                if (activePointer === 'lmp') {
+                    lmpRotation = angle;
+                    eddRotation = (lmpRotation + (PREGNANCY_DAYS * DEGREES_PER_DAY) + (dateBias * DEGREES_PER_DAY)) % 360;
+                } else {
+                    eddRotation = angle;
+                    lmpRotation = (eddRotation - (PREGNANCY_DAYS * DEGREES_PER_DAY) - (dateBias * DEGREES_PER_DAY)) % 360;
+                    if (lmpRotation < 0) lmpRotation += 360;
+                }
+                
+                updateDisplay();
+                updateDateLabels(clientX, clientY);
+                updateCelestialTable();
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                activePointer = null;
+                
+                pointerLmp.classList.remove('active');
+                pointerEdd.classList.remove('active');
+                dateLabelLmp.classList.remove('show');
+                dateLabelEdd.classList.remove('show');
+            }
+            
+            function updateBias() {
+                dateBias = parseInt(biasSlider.value);
+                biasValue.textContent = `${dateBias >= 0 ? '+' : ''}${dateBias} days`;
+                
+                eddRotation = (lmpRotation + (PREGNANCY_DAYS * DEGREES_PER_DAY) + (dateBias * DEGREES_PER_DAY)) % 360;
+                updateDisplay();
+                updateCelestialTable();
+            }
+            
+            function updateDisplay() {
+                const rect = wheel.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const radius = (rect.width / 2) - 25;
+                
+                const lmpAngle = (lmpRotation - 90) * Math.PI / 180;
+                const lmpX = centerX + radius * Math.cos(lmpAngle);
+                const lmpY = centerY + radius * Math.sin(lmpAngle);
+                
+                const eddAngle = (eddRotation - 90) * Math.PI / 180;
+                const eddX = centerX + radius * Math.cos(eddAngle);
+                const eddY = centerY + radius * Math.sin(eddAngle);
+                
+                pointerLmp.style.left = lmpX + 'px';
+                pointerLmp.style.top = lmpY + 'px';
+                pointerLmp.style.transform = `rotate(${lmpRotation}deg)`;
+                
+                pointerEdd.style.left = eddX + 'px';
+                pointerEdd.style.top = eddY + 'px';
+                pointerEdd.style.transform = `rotate(${eddRotation}deg)`;
+                
+                // Update dynamic text positions
+                const textRadius = radius + 25;
+                const lmpTextX = centerX + textRadius * Math.cos(lmpAngle);
+                const lmpTextY = centerY + textRadius * Math.sin(lmpAngle);
+                const eddTextX = centerX + textRadius * Math.cos(eddAngle);
+                const eddTextY = centerY + textRadius * Math.sin(eddAngle);
+                
+                dynamicTextLmp.style.left = lmpTextX + 'px';
+                dynamicTextLmp.style.top = lmpTextY + 'px';
+                dynamicTextLmp.style.transform = 'translate(-50%, -50%)';
+                
+                dynamicTextEdd.style.left = eddTextX + 'px';
+                dynamicTextEdd.style.top = eddTextY + 'px';
+                dynamicTextEdd.style.transform = 'translate(-50%, -50%)';
+                
+                const lmpDays = Math.round(lmpRotation / DEGREES_PER_DAY);
+                const lmpDate = new Date(MIN_DATE);
+                lmpDate.setDate(lmpDate.getDate() + lmpDays);
+                
+                const eddDays = Math.round(eddRotation / DEGREES_PER_DAY);
+                const eddDate = new Date(MIN_DATE);
+                eddDate.setDate(eddDate.getDate() + eddDays);
+                
+                // Handle date validation - ensure EDD shows correct date even if out of range
+                const calculatedEDD = new Date(lmpDate);
+                calculatedEDD.setDate(calculatedEDD.getDate() + PREGNANCY_DAYS + dateBias);
+                
+                const daysSinceLMP = Math.floor((NOW - lmpDate) / (1000 * 60 * 60 * 24));
+                const weeks = Math.max(0, Math.floor(daysSinceLMP / 7));
+                const days = Math.max(0, daysSinceLMP % 7);
+                
+                lmpDateEl.textContent = formatDate(lmpDate);
+                dueDateEl.textContent = formatDate(calculatedEDD);
+                weeksPregnantEl.textContent = weeks;
+                daysPregnantEl.textContent = days;
+                
+                wheelDate.textContent = formatDate(lmpDate);
+                wheelWeek.textContent = `Week ${weeks}`;
+                
+                // Update dynamic text
+                dynamicTextLmp.textContent = `LMP: ${formatDateShort(lmpDate)}`;
+                dynamicTextEdd.textContent = `EDD: ${formatDateShort(calculatedEDD)}`;
+                
+                updateTrimesterDates(lmpDate);
+                updateCalendarHighlights(lmpDate, calculatedEDD);
+            }
+            
+            function updateDateLabels(mouseX, mouseY) {
+                const lmpDays = Math.round(lmpRotation / DEGREES_PER_DAY);
+                const lmpDate = new Date(MIN_DATE);
+                lmpDate.setDate(lmpDate.getDate() + lmpDays);
+                dateLabelLmp.textContent = formatDate(lmpDate);
+                
+                const calculatedEDD = new Date(lmpDate);
+                calculatedEDD.setDate(calculatedEDD.getDate() + PREGNANCY_DAYS + dateBias);
+                dateLabelEdd.textContent = formatDate(calculatedEDD);
+                
+                if (activePointer === 'lmp') {
+                    dateLabelLmp.style.left = (mouseX + 20) + 'px';
+                    dateLabelLmp.style.top = (mouseY - 30) + 'px';
+                } else if (activePointer === 'edd') {
+                    dateLabelEdd.style.left = (mouseX + 20) + 'px';
+                    dateLabelEdd.style.top = (mouseY - 30) + 'px';
+                }
+            }
+            
+            function updateTrimesterDates(lmpDate) {
+                const firstTrimesterEnd = new Date(lmpDate);
+                firstTrimesterEnd.setDate(firstTrimesterEnd.getDate() + 13 * 7);
+                
+                const secondTrimesterStart = new Date(firstTrimesterEnd);
+                secondTrimesterStart.setDate(secondTrimesterStart.getDate() + 1);
+                
+                const secondTrimesterEnd = new Date(lmpDate);
+                secondTrimesterEnd.setDate(secondTrimesterEnd.getDate() + 26 * 7);
+                
+                const thirdTrimesterStart = new Date(secondTrimesterEnd);
+                thirdTrimesterStart.setDate(thirdTrimesterStart.getDate() + 1);
+                
+                const thirdTrimesterEnd = new Date(lmpDate);
+                thirdTrimesterEnd.setDate(thirdTrimesterEnd.getDate() + 40 * 7);
+                
+                trimester1Dates.textContent = `${formatDate(lmpDate)} - ${formatDate(firstTrimesterEnd)}`;
+                trimester2Dates.textContent = `${formatDate(secondTrimesterStart)} - ${formatDate(secondTrimesterEnd)}`;
+                trimester3Dates.textContent = `${formatDate(thirdTrimesterStart)} - ${formatDate(thirdTrimesterEnd)}`;
+            }
+            
+            function generateCalendar() {
+                calendarGrid.innerHTML = '';
+                
+                const months = [
+                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                ];
+                
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                
+                months.forEach((month, index) => {
+                    const monthEl = document.createElement('div');
+                    monthEl.className = 'calendar-month';
+                    
+                    const monthLabel = document.createElement('div');
+                    monthLabel.className = 'month-label';
+                    monthLabel.textContent = month;
+                    
+                    const monthYear = document.createElement('div');
+                    monthYear.className = 'month-year';
+                    monthYear.textContent = currentYear;
+                    
+                    monthEl.appendChild(monthLabel);
+                    monthEl.appendChild(monthYear);
+                    
+                    monthEl.dataset.month = index;
+                    monthEl.dataset.year = currentYear;
+                    
+                    calendarGrid.appendChild(monthEl);
+                });
+            }
+            
+            function updateCalendarHighlights(lmpDate, eddDate) {
+                const months = calendarGrid.querySelectorAll('.calendar-month');
+                months.forEach(month => {
+                    const monthIndex = parseInt(month.dataset.month);
+                    const year = parseInt(month.dataset.year);
+                    
+                    const lmpInThisMonth = lmpDate.getMonth() === monthIndex && lmpDate.getFullYear() === year;
+                    const eddInThisMonth = eddDate.getMonth() === monthIndex && eddDate.getFullYear() === year;
+                    
+                    if (lmpInThisMonth || eddInThisMonth) {
+                        month.classList.add('highlight');
+                    } else {
+                        month.classList.remove('highlight');
+                    }
+                });
+            }
+            
+            function updateCelestialTable() {
+                const lmpDays = Math.round(lmpRotation / DEGREES_PER_DAY);
+                const lmpDate = new Date(MIN_DATE);
+                lmpDate.setDate(lmpDate.getDate() + lmpDays);
+                
+                const calculatedEDD = new Date(lmpDate);
+                calculatedEDD.setDate(calculatedEDD.getDate() + PREGNANCY_DAYS + dateBias);
+                
+                celestialTbody.innerHTML = '';
+                
+                // Generate 5 rows showing different dates throughout pregnancy
+                const dates = [
+                    { label: 'LMP', date: new Date(lmpDate) },
+                    { label: '1st Trim End', date: new Date(lmpDate.getTime() + 13 * 7 * 24 * 60 * 60 * 1000) },
+                    { label: '2nd Trim End', date: new Date(lmpDate.getTime() + 26 * 7 * 24 * 60 * 60 * 1000) },
+                    { label: '3rd Trim End', date: new Date(lmpDate.getTime() + 39 * 7 * 24 * 60 * 60 * 1000) },
+                    { label: 'EDD', date: calculatedEDD }
+                ];
+                
+                dates.forEach(dateInfo => {
+                    const row = document.createElement('tr');
+                    
+                    // Date column
+                    const dateCell = document.createElement('td');
+                    dateCell.className = 'date-cell';
+                    dateCell.innerHTML = `<strong>${dateInfo.label}</strong><br>${formatDateShort(dateInfo.date)}`;
+                    row.appendChild(dateCell);
+                    
+                    // Sun column
+                    const sunCell = document.createElement('td');
+                    sunCell.className = 'sun-cell';
+                    const sunPhase = getSunPhase(dateInfo.date);
+                    sunCell.innerHTML = `☀️ ${sunPhase}`;
+                    row.appendChild(sunCell);
+                    
+                    // Moon column
+                    const moonCell = document.createElement('td');
+                    moonCell.className = 'moon-cell';
+                    const moonPhase = getMoonPhase(dateInfo.date);
+                    moonCell.innerHTML = `🌙 ${moonPhase}`;
+                    row.appendChild(moonCell);
+                    
+                    // Zodiac column
+                    const zodiacCell = document.createElement('td');
+                    zodiacCell.className = 'zodiac-cell';
+                    const zodiacSign = getZodiacSign(dateInfo.date);
+                    zodiacCell.innerHTML = `⭐ ${zodiacSign}`;
+                    row.appendChild(zodiacCell);
+                    
+                    celestialTbody.appendChild(row);
+                });
+            }
+            
+            function getSunPhase(date) {
+                const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+                
+                if (dayOfYear >= 1 && dayOfYear <= 92) {
+                    return 'Perihelion';
+                } else if (dayOfYear >= 93 && dayOfYear <= 184) {
+                    return 'Moving Away';
+                } else if (dayOfYear >= 185 && dayOfYear <= 276) {
+                    return 'Aphelion';
+                } else {
+                    return 'Approaching';
+                }
+            }
+            
+            function getMoonPhase(date) {
+                // Simple moon phase calculation based on a lunar cycle
+                const lunarCycle = 29.5; // days
+                const referenceNewMoon = new Date(2024, 0, 11); // January 11, 2024
+                const daysSinceNew = Math.floor((date - referenceNewMoon) / (1000 * 60 * 60 * 24)) % lunarCycle;
+                
+                if (daysSinceNew < 7.4) {
+                    return 'New Moon';
+                } else if (daysSinceNew < 14.8) {
+                    return 'Waxing';
+                } else if (daysSinceNew < 22.1) {
+                    return 'Full Moon';
+                } else {
+                    return 'Waning';
+                }
+            }
+            
+            function getZodiacSign(date) {
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                
+                if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 'Aries ♈';
+                if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 'Taurus ♉';
+                if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return 'Gemini ♊';
+                if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return 'Cancer ♋';
+                if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 'Leo ♌';
+                if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 'Virgo ♍';
+                if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return 'Libra ♎';
+                if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return 'Scorpio ♏';
+                if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return 'Sagittarius ♐';
+                if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 'Capricorn ♑';
+                if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'Aquarius ♒';
+                if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 'Pisces ♓';
+                
+                return 'Unknown';
+            }
+            
+            function updateFoodSection() {
+                const region = regionSelect.value;
+                const foods = regionalFoods[region] || regionalFoods['sub-saharan-africa'];
+                
+                foodSection.innerHTML = '';
+                
+                Object.keys(foods).forEach(trimester => {
+                    const trimesterDiv = document.createElement('div');
+                    trimesterDiv.className = 'food-trimester';
+                    
+                    const title = document.createElement('div');
+                    title.className = 'food-title';
+                    title.textContent = trimester;
+                    trimesterDiv.appendChild(title);
+                    
+                    const categoriesDiv = document.createElement('div');
+                    categoriesDiv.className = 'food-categories';
+                    
+                    Object.keys(foods[trimester]).forEach(category => {
+                        const categoryDiv = document.createElement('div');
+                        categoryDiv.className = 'food-category';
+                        
+                        const categoryTitle = document.createElement('div');
+                        categoryTitle.className = 'category-title';
+                        categoryTitle.textContent = category;
+                        categoryDiv.appendChild(categoryTitle);
+                        
+                        const foodList = document.createElement('div');
+                        foodList.className = 'food-list';
+                        
+                        foods[trimester][category].forEach(food => {
+                            const foodItem = document.createElement('div');
+                            foodItem.className = 'food-item';
+                            
+                            const foodName = document.createElement('span');
+                            foodName.className = 'food-name';
+                            foodName.textContent = `${food.icon} ${food.name}`;
+                            
+                            const foodBtn = document.createElement('button');
+                            foodBtn.className = 'food-btn';
+                            foodBtn.textContent = 'Info';
+                            foodBtn.onclick = () => showFoodModal(food.name);
+                            
+                            foodItem.appendChild(foodName);
+                            foodItem.appendChild(foodBtn);
+                            foodList.appendChild(foodItem);
+                        });
+                        
+                        categoryDiv.appendChild(foodList);
+                        categoriesDiv.appendChild(categoryDiv);
+                    });
+                    
+                    trimesterDiv.appendChild(categoriesDiv);
+                    foodSection.appendChild(trimesterDiv);
+                });
+            }
+            
+            function showFoodModal(foodName) {
+                const details = foodDetails[foodName] || {
+                    nutrition: 'Nutritional information not available for this food item.',
+                    funFacts: [
+                        'This food is commonly consumed in the selected region',
+                        'It provides essential nutrients for pregnancy',
+                        'Local preparation methods may vary',
+                        'Seasonal availability may affect access',
+                        'Traditional use dates back generations',
+                        'May have cultural significance in the region',
+                        'Consult local healthcare providers for specific advice'
+                    ],
+                    recipe: 'Preparation methods vary by region. Consult local cookbooks or community members for traditional recipes.',
+                    precautions: 'As with all foods during pregnancy, consume in moderation and ensure proper preparation and hygiene.',
+                    links: [
+                        'https://www.who.int/nutrition/topics/maternal_nutrition/en/',
+                        'https://www.fao.org/nutrition/education/food-dietary-guidelines/en/',
+                        'https://www.unicef.org/nutrition/index_maternal.html'
+                    ]
+                };
+                
+                document.getElementById('modal-title').textContent = foodName;
+                document.getElementById('modal-nutrition').textContent = details.nutrition;
+                document.getElementById('modal-recipe').textContent = details.recipe;
+                document.getElementById('modal-precautions').textContent = details.precautions;
+                
+                const funFactsList = document.getElementById('modal-fun-facts');
+                funFactsList.innerHTML = '';
+                details.funFacts.forEach(fact => {
+                    const li = document.createElement('li');
+                    li.textContent = fact;
+                    funFactsList.appendChild(li);
+                });
+                
+                const linksDiv = document.getElementById('modal-links');
+                linksDiv.innerHTML = '';
+                details.links.forEach(link => {
+                    const linkEl = document.createElement('a');
+                    linkEl.href = link;
+                    linkEl.target = '_blank';
+                    linkEl.textContent = link;
+                    linkEl.style.display = 'block';
+                    linkEl.style.color = 'var(--primary)';
+                    linkEl.style.marginBottom = '5px';
+                    linkEl.style.fontSize = '0.9rem';
+                    linksDiv.appendChild(linkEl);
+                });
+                
+                modal.style.display = 'block';
+            }
+            
+            function createWheelMarkers() {
+                for (let i = 0; i < 24; i++) {
+                    const marker = document.createElement('div');
+                    marker.className = i % 3 === 0 ? 'marker major' : 'marker';
+                    const angle = i * (360 / 24);
+                    marker.style.transform = `rotate(${angle}deg)`;
+                    wheel.appendChild(marker);
+                    
+                    if (i % 3 === 0) {
+                        const label = document.createElement('div');
+                        label.className = 'marker-label';
+                        
+                        const monthOffset = Math.floor(i / 2) - 6;
+                        const labelDate = new Date(NOW);
+                        labelDate.setMonth(labelDate.getMonth() + monthOffset);
+                        
+                        label.textContent = formatMonth(labelDate);
+                        
+                        const labelAngle = angle * Math.PI / 180;
+                        const labelRadius = 40;
+                        label.style.transform = `rotate(${angle}deg) translate(0, -${labelRadius}%) rotate(-${angle}deg)`;
+                        
+                        wheel.appendChild(label);
+                    }
+                }
+            }
+            
+            function formatDate(date) {
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            }
+            
+            function formatDateShort(date) {
+                const options = { month: 'short', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            }
+            
+            function formatMonth(date) {
+                const options = { month: 'short', year: '2-digit' };
+                return date.toLocaleDateString('en-US', options);
+            }
+            
+            // Initialize updates
+            setInterval(() => {
+                updateCelestialTable();
+            }, 60000); // Update every minute
+        });
+    </script>
+</body>
+</html>
