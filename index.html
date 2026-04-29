@@ -39,7 +39,8 @@ html{scroll-behavior:smooth}
 body{font-family:var(--ff-b);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;line-height:1.6;transition:background .4s,color .4s;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:1;opacity:.3}
 #bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;background-size:cover;background-position:center;transition:opacity .4s}
-body>*:not(#bg-layer):not(#welcome-overlay):not(#welcome-splash){position:relative;z-index:1}
+/* Targeted stacking contexts for layout elements only — never override fixed-position elements */
+.site-header,.nav-bar,.main,footer{position:relative;z-index:1}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--p1l);border-radius:3px}
 h1,h2,h3,h4{font-family:var(--ff-d);line-height:1.25}
 h2{color:var(--a1);font-size:clamp(1.1rem,3.5vw,1.9rem)}h4{color:var(--a1)}
@@ -58,7 +59,8 @@ h2{color:var(--a1);font-size:clamp(1.1rem,3.5vw,1.9rem)}h4{color:var(--a1)}
 .sr-none{padding:13px;font-size:.78rem;color:var(--txl);text-align:center}
 mark{background:rgba(212,168,83,.35);border-radius:2px;font-weight:700;color:var(--tx)}
 /* HEADER */
-.site-header{background:var(--a1);padding:9px 15px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3);flex-wrap:nowrap;min-height:57px}
+/* HEADER — always flush to top of viewport, no gap */
+.site-header{background:var(--a1);padding:9px 15px;display:flex;align-items:center;gap:8px;position:sticky;top:0;margin-top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.3);flex-wrap:nowrap;min-height:57px}
 .logo-wrap{display:flex;align-items:center;gap:7px;flex-shrink:0;text-decoration:none}
 .logo-bloom{font-size:1.65rem;animation:bloom 4s ease-in-out infinite}
 @keyframes bloom{0%,100%{transform:scale(1)}50%{transform:scale(1.1) rotate(5deg)}}
@@ -84,11 +86,62 @@ mark{background:rgba(212,168,83,.35);border-radius:2px;font-weight:700;color:var
   border-color:rgba(255,255,255,.5);
   box-shadow:0 0 0 3px rgba(255,255,255,.12);
 }
-/* Small "open" chevron indicator inside button when panel open */
 .hdr-theme-toggle[aria-expanded="true"]::after{
   content:'›';
   position:absolute;bottom:-2px;right:-1px;
   font-size:.55rem;color:rgba(255,255,255,.7);line-height:1;
+}
+
+/* ── FLOATING HINT NOTE ── */
+.sp-hint{
+  position:absolute;
+  top:calc(100% + 14px);
+  left:0;
+  z-index:8100;           /* above panel and overlay */
+  width:220px;
+  background:var(--sur,#fff);
+  border:1.5px solid var(--p1,#C85A7B);
+  border-radius:14px;
+  padding:12px 14px 10px;
+  box-shadow:0 8px 32px rgba(0,0,0,.22),0 2px 8px rgba(200,90,123,.18);
+  animation:hint-pop .4s cubic-bezier(.34,1.56,.64,1) both;
+  display:none;             /* JS controls visibility */
+}
+.sp-hint.visible{display:block}
+/* Arrow pointing up toward the 🎨 button */
+.sp-hint-arrow{
+  position:absolute;top:-8px;left:14px;
+  width:0;height:0;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:8px solid var(--p1,#C85A7B);
+}
+.sp-hint-arrow::after{
+  content:'';position:absolute;top:2px;left:-7px;
+  width:0;height:0;
+  border-left:7px solid transparent;
+  border-right:7px solid transparent;
+  border-bottom:7px solid var(--sur,#fff);
+}
+@keyframes hint-pop{from{opacity:0;transform:translateY(-6px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+.sp-hint-x{
+  position:absolute;top:7px;right:8px;
+  background:none;border:none;cursor:pointer;
+  font-size:.78rem;color:var(--txl,#888);line-height:1;
+  padding:2px 5px;border-radius:50%;transition:color .2s,background .2s;
+}
+.sp-hint-x:hover{color:var(--tx,#333);background:var(--bg2,#eee)}
+.sp-hint-body{display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;padding-right:16px}
+.sp-hint-emoji{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+.sp-hint-text{font-size:.78rem;color:var(--tx,#333);line-height:1.45;font-family:var(--ff-b,'Nunito'),sans-serif}
+.sp-hint-forever{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.7rem;color:var(--txl,#888);font-family:var(--ff-b,'Nunito'),sans-serif}
+.sp-hint-forever input{accent-color:var(--p1,#C85A7B);cursor:pointer}
+.sp-hint-forever:hover span{color:var(--tx,#333)}
+/* Hide hint when settings panel is open */
+.settings-panel.open ~ * .sp-hint,
+body.sp-open .sp-hint{ display:none !important }
+@media(max-width:480px){
+  .sp-hint{width:min(200px, calc(100vw - 24px));left:0}
 }
 /* NAV */
 .nav-bar{display:flex;gap:3px;padding:5px 14px;background:var(--sur);border-bottom:2px solid var(--bg2);overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none;position:sticky;top:57px;z-index:99;align-items:center}
@@ -362,7 +415,7 @@ mark{background:rgba(212,168,83,.35);border-radius:2px;font-weight:700;color:var
 .warn-banner h4{color:var(--p1);margin-bottom:5px;font-size:.84rem}
 /* SETTINGS PANEL */
 /* ── SETTINGS PANEL: left-side retractable drawer, hidden by default ── */
-.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);z-index:300;display:none;opacity:0;transition:opacity .3s}
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);z-index:8000;display:none;opacity:0;transition:opacity .3s}
 .settings-overlay.open{display:block;opacity:1}
 .settings-panel{
   position:fixed;
@@ -370,7 +423,7 @@ mark{background:rgba(212,168,83,.35);border-radius:2px;font-weight:700;color:var
   width:320px;max-width:88vw;
   background:var(--sur);
   box-shadow:8px 0 40px rgba(0,0,0,.35); /* shadow goes RIGHT now */
-  z-index:301;
+  z-index:8001;                  /* above overlay, sticky header (100), nav-bar (99) */
   overflow-y:auto;overflow-x:hidden;
   overscroll-behavior:contain;
   transform:translateX(-100%);  /* hidden: slides off to the LEFT */
@@ -1197,10 +1250,11 @@ body.welcome-locked > *:not(#welcome-overlay):not(#welcome-splash):not(#bg-layer
 body:not(.app-ready) .nav-bar,
 body:not(.app-ready) .main,
 body:not(.app-ready) .site-header { opacity:0; }
-body.app-ready .site-header { animation:app-reveal .4s ease forwards; }
-body.app-ready .nav-bar     { animation:app-reveal .5s ease .12s forwards; }
-body.app-ready .main        { animation:app-reveal .6s ease .22s forwards; }
-@keyframes app-reveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+body.app-ready .site-header { animation:app-reveal .35s ease forwards; }
+body.app-ready .nav-bar     { animation:app-reveal .4s ease .08s forwards; }
+body.app-ready .main        { animation:app-reveal .5s ease .16s forwards; }
+/* No translateY — header must sit flush at top-of-page with zero gap */
+@keyframes app-reveal{from{opacity:0}to{opacity:1}}
 
 /* Greeting header */
 .hdr-greeting{animation:greet-in .5s ease .35s both}
@@ -1655,9 +1709,24 @@ body.app-ready .nav-btn{animation:nav-slide .3s ease both}
 <!-- ===== HEADER ===== -->
 <header class="site-header" role="banner">
   <!-- Left cluster: theme toggle + logo -->
-  <button class="hdr-btn hdr-theme-toggle" id="hdr-theme-btn" onclick="toggleSettings()" title="Personalise — colour, font &amp; settings" aria-label="Open personalisation panel" aria-expanded="false">
-    <span class="hdr-theme-ico">🎨</span>
-  </button>
+  <div class="hdr-theme-cluster" style="position:relative;display:flex;align-items:center;flex-shrink:0">
+    <button class="hdr-btn hdr-theme-toggle" id="hdr-theme-btn" onclick="toggleSettings()" title="Personalise — colour, font &amp; settings" aria-label="Open personalisation panel" aria-expanded="false">
+      <span class="hdr-theme-ico">🎨</span>
+    </button>
+    <!-- Floating hint note -->
+    <div class="sp-hint" id="sp-hint" role="tooltip" aria-live="polite">
+      <button class="sp-hint-x" id="sp-hint-x" onclick="dismissHint(false)" aria-label="Close hint">✕</button>
+      <span class="sp-hint-arrow" aria-hidden="true"></span>
+      <div class="sp-hint-body">
+        <span class="sp-hint-emoji">🎨</span>
+        <span class="sp-hint-text">Click here to change theme, font &amp; colours — see it change live!</span>
+      </div>
+      <label class="sp-hint-forever">
+        <input type="checkbox" id="sp-hint-forever-chk" onchange="setHintForever(this.checked)">
+        <span>Don't show again</span>
+      </label>
+    </div>
+  </div>
   <div class="logo-wrap">
     <span class="logo-bloom" aria-hidden="true">🌸</span>
     <div><div class="logo-name">BabyBloom</div><div class="logo-sub">Pregnancy &amp; Parenting</div></div>
@@ -3377,9 +3446,61 @@ function toggleSettings() {
   panel.classList.toggle('open', opening);
   if (ov) ov.classList.toggle('open', opening);
   if (btn) btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  // Hide hint while panel is open; restore when closed (unless permanently dismissed)
   if (opening) {
-    // Sync all controls to current state when panel opens
+    _hideHint();
+  } else {
+    // Re-show hint on close if not permanently dismissed and "show at startup" is on
+    setTimeout(function(){ initHint(false); }, 600);
+  }
+  if (opening) {
     _syncSettingsPanelUI();
+  }
+}
+
+// ── FLOATING HINT NOTE ─────────────────────────────────────────
+var _hintDismissed = false;
+function initHint(onStartup) {
+  // Read prefs
+  const forever = localStorage.getItem('bb-hint-forever') === '1';
+  const show    = localStorage.getItem('bb-hint-show') !== '0'; // default: show
+  if (forever) return;
+  // On startup: only show if show-at-startup pref is on
+  if (onStartup && !show) return;
+  // Don't show if panel is open
+  const panel = document.getElementById('sp');
+  if (panel && panel.classList.contains('open')) return;
+  const hint = document.getElementById('sp-hint');
+  if (!hint) return;
+  // Sync forever checkbox to stored state
+  const chk = document.getElementById('sp-hint-forever-chk');
+  if (chk) chk.checked = !show; // "don't show again" ≈ show=false
+  hint.classList.add('visible');
+  _hintDismissed = false;
+}
+function _hideHint() {
+  const hint = document.getElementById('sp-hint');
+  if (hint) hint.classList.remove('visible');
+}
+function dismissHint(forever) {
+  _hideHint();
+  _hintDismissed = true;
+  if (forever) {
+    localStorage.setItem('bb-hint-forever', '1');
+    localStorage.setItem('bb-hint-show', '0');
+  }
+  // If not forever, still hide this session but re-show next startup
+}
+function setHintForever(checked) {
+  if (checked) {
+    // "Don't show again" checked
+    localStorage.setItem('bb-hint-forever', '1');
+    localStorage.setItem('bb-hint-show', '0');
+    dismissHint(true);
+  } else {
+    // "Don't show again" unchecked — restore startup behaviour
+    localStorage.removeItem('bb-hint-forever');
+    localStorage.setItem('bb-hint-show', '1');
   }
 }
 
@@ -4668,6 +4789,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (_sp) { _sp.classList.remove('open'); }
   if (_spov) { _spov.classList.remove('open'); }
   initWelcome();
+  // Show floating theme hint on startup (respects user's "don't show again" preference)
+  setTimeout(function(){ initHint(true); }, 1200);
   startClock();
   startGreetingRefresh();
   initWheel();
