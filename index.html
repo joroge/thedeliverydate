@@ -9649,7 +9649,517 @@ ${sec.innerHTML}
 
 console.log('✅ BabyBloom master patch loaded');
 
+// ╔══════════════════════════════════════════════════════════════╗
+// ║   COMPREHENSIVE FIX — ALL BUTTONS · POPUPS · RESPONSIVE    ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+// ── FIX DARK MODE (unify body.dark & dark-mode class) ──
+(function fixDarkMode() {
+  // Patch toggleDark to sync both classes
+  const _origToggleDark = window.toggleDark;
+  window.toggleDark = function() {
+    const sw = document.getElementById('dm-sw');
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    // Also toggle dark-mode on html element for gradient theme CSS
+    document.documentElement.classList.toggle('dark-mode', isDark);
+    if (sw) sw.classList.toggle('on', isDark);
+    localStorage.setItem('bb-dark', isDark ? '1' : '0');
+    if (typeof ST !== 'undefined') { ST.dark = isDark; if (typeof saveST === 'function') saveST(); }
+  };
+  // Restore on load
+  if (localStorage.getItem('bb-dark') === '1') {
+    document.body.classList.add('dark');
+    document.documentElement.classList.add('dark-mode');
+    const sw = document.getElementById('dm-sw');
+    if (sw) sw.classList.add('on');
+  }
+})();
+
+// ── FIX: popup outside-click close ──
+(function fixPopupClose() {
+  // Info modal
+  const infoModal = document.getElementById('bb-info-modal');
+  if (infoModal && !infoModal._outsideWired) {
+    infoModal._outsideWired = true;
+    infoModal.addEventListener('click', e => {
+      if (e.target === infoModal && typeof bbCloseInfo === 'function') bbCloseInfo();
+    });
+  }
+  // Help popup
+  const helpPopup = document.getElementById('bb-help-popup');
+  if (helpPopup && !helpPopup._outsideWired) {
+    helpPopup._outsideWired = true;
+    helpPopup.addEventListener('click', e => {
+      if (e.target === helpPopup && typeof bbCloseHelp === 'function') bbCloseHelp();
+    });
+  }
+  // Standard modals (wk-mo, ms-mo, food-mo)
+  document.querySelectorAll('.modal-ov').forEach(mo => {
+    if (!mo._outsideWired) {
+      mo._outsideWired = true;
+      mo.addEventListener('click', e => {
+        if (e.target === mo) mo.classList.remove('open');
+      });
+    }
+  });
+  // Tile panel
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('bb-tile-panel');
+    const allBtn = document.getElementById('bb-allnav-btn');
+    if (panel && panel.classList.contains('open')) {
+      if (!panel.contains(e.target) && !(allBtn && allBtn.contains(e.target))) {
+        panel.classList.remove('open');
+      }
+    }
+  }, { passive: true });
+})();
+
+// ── FIX: setTheme — apply dark-mode class after theme change ──
+(function extendSetTheme() {
+  const _orig = window.setTheme;
+  if (_orig && !_orig._extended) {
+    window.setTheme = function(t, btn) {
+      _orig(t, btn);
+      // Re-apply dark mode class if active
+      if (document.body.classList.contains('dark')) {
+        document.documentElement.classList.add('dark-mode');
+      }
+    };
+    window.setTheme._extended = true;
+  }
+})();
+
+// ── ALL SETTINGS PANEL BUTTONS WIRED + TESTED ──
+function bbWireAllSettings() {
+  // 1. Dark Mode toggle
+  const dmSw = document.getElementById('dm-sw');
+  if (dmSw && !dmSw._wired) {
+    dmSw._wired = true;
+    // Already has onclick=toggleDark() -- just ensure state
+    dmSw.classList.toggle('on', document.body.classList.contains('dark'));
+  }
+
+  // 2. Font size slider
+  const fontSz = document.getElementById('font-sz');
+  const fzLabel = document.getElementById('fz-val');
+  if (fontSz && !fontSz._wired) {
+    fontSz._wired = true;
+    const sv = localStorage.getItem('bb-font-size') || '16';
+    fontSz.value = sv;
+    document.documentElement.style.fontSize = sv + 'px';
+    if (fzLabel) fzLabel.textContent = sv + 'px';
+    fontSz.addEventListener('input', function() {
+      document.documentElement.style.fontSize = this.value + 'px';
+      if (fzLabel) fzLabel.textContent = this.value + 'px';
+      localStorage.setItem('bb-font-size', this.value);
+    });
+  }
+
+  // 3. Font color custom input
+  const fcCustom = document.getElementById('bb-fc-custom');
+  if (fcCustom && !fcCustom._wired) {
+    fcCustom._wired = true;
+    const saved = localStorage.getItem('bb-fontcolor');
+    if (saved) fcCustom.value = saved;
+    fcCustom.addEventListener('input', function() {
+      if (typeof setBBFontColor === 'function') setBBFontColor(this.value, null);
+    });
+  }
+
+  // 4. Startup music checkbox
+  const smCb = document.getElementById('bb-startup-music-on');
+  if (smCb && !smCb._wired) {
+    smCb._wired = true;
+    smCb.checked = localStorage.getItem('bb-startup-music') === '1';
+    smCb.addEventListener('change', function() {
+      localStorage.setItem('bb-startup-music', this.checked ? '1' : '0');
+    });
+  }
+
+  // 5. Partner name settings input
+  const spPartner = document.getElementById('sp-partnername');
+  if (spPartner && !spPartner._wired) {
+    spPartner._wired = true;
+    const pn = localStorage.getItem('bb-partnername') || '';
+    spPartner.value = pn;
+    spPartner.addEventListener('input', function() {
+      if (typeof setPartnerName === 'function') setPartnerName(this.value);
+    });
+  }
+
+  // 6. Username/mother name settings input
+  const spUser = document.getElementById('sp-username');
+  if (spUser && !spUser._wired) {
+    spUser._wired = true;
+    const un = localStorage.getItem('bb-username') || localStorage.getItem('bb-name') || '';
+    spUser.value = un;
+    spUser.addEventListener('input', function() {
+      if (typeof setUsername === 'function') setUsername(this.value);
+    });
+  }
+
+  // 7. FX item toggles
+  const fxMap = { 'bb-fxi-balloon': 'balloon', 'bb-fxi-stars': 'stars', 'bb-fxi-confetti': 'confetti' };
+  const fxItems = JSON.parse(localStorage.getItem('bb-fx-items') || '{"balloon":true,"stars":true,"confetti":true}');
+  Object.entries(fxMap).forEach(([id, item]) => {
+    const sw = document.getElementById(id);
+    if (sw) {
+      sw.classList.toggle('on', fxItems[item] !== false);
+      if (!sw._wired) {
+        sw._wired = true;
+        // already has onclick=bbToggleFXItem2(item,this) -- just ensure state
+      }
+    }
+  });
+
+  // 8. IVF start date input
+  const ivfStart = document.getElementById('bb-ivf-start');
+  if (ivfStart && !ivfStart._wired) {
+    ivfStart._wired = true;
+    const saved = localStorage.getItem('bb-ivf-start');
+    if (saved) ivfStart.value = saved;
+  }
+
+  // 9. Cursor option buttons - restore active state
+  const curMode = localStorage.getItem('bb-cursor') || 'default';
+  document.querySelectorAll('.bb-cursor-opt').forEach(b => {
+    const isActive = b.getAttribute('data-cursor') === curMode;
+    b.style.background = isActive ? 'var(--p1)' : 'transparent';
+    b.style.color = isActive ? 'white' : 'var(--txm)';
+    b.style.borderColor = isActive ? 'var(--p1)' : 'var(--bdr2)';
+    if (!b._wired) {
+      b._wired = true;
+      b.addEventListener('keydown', e => { if (e.key === 'Enter') b.click(); });
+    }
+  });
+
+  // 10. Theme dots - restore active
+  const savedTheme = localStorage.getItem('bb-theme') || 'rose';
+  document.querySelectorAll('.th-dot').forEach(d => {
+    d.classList.toggle('active', d.getAttribute('data-t') === savedTheme);
+    if (!d._wired) {
+      d._wired = true;
+      d.setAttribute('role', 'button');
+      d.setAttribute('tabindex', '0');
+      d.setAttribute('aria-label', d.title || 'Theme');
+      d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') d.click(); });
+    }
+  });
+
+  // 11. Font buttons - restore active
+  const savedFont = localStorage.getItem('bb-font') || 'Nunito';
+  document.querySelectorAll('.font-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-font') === savedFont || b.getAttribute('data-font') === savedFont);
+    if (!b._wired) {
+      b._wired = true;
+      b.setAttribute('role', 'button');
+      b.addEventListener('keydown', e => { if (e.key === 'Enter') b.click(); });
+    }
+  });
+
+  // 12. Font color swatches - restore active
+  const savedFc = localStorage.getItem('bb-fontcolor');
+  if (savedFc) {
+    document.querySelectorAll('.bb-fcs').forEach(s => {
+      s.classList.toggle('active', s.getAttribute('style') && s.getAttribute('style').includes(savedFc));
+    });
+    const fcCustomInput = document.getElementById('bb-fc-custom');
+    if (fcCustomInput) fcCustomInput.value = savedFc;
+  }
+
+  // 13. All generic toggle-sw without onclick — add toggle behavior
+  document.querySelectorAll('.toggle-sw').forEach(sw => {
+    if (!sw._wired && !sw.getAttribute('onclick') && !sw.id) {
+      sw._wired = true;
+      sw.addEventListener('click', function() {
+        this.classList.toggle('on');
+      });
+    }
+  });
+
+  // 14. All chip buttons — keyboard + ARIA
+  document.querySelectorAll('.chip').forEach(btn => {
+    if (!btn._kbwired) {
+      btn._kbwired = true;
+      btn.setAttribute('role', 'button');
+      btn.setAttribute('tabindex', '0');
+      btn.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
+      });
+    }
+  });
+
+  // 15. All nav-btn — keyboard
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    if (!btn._navwired) {
+      btn._navwired = true;
+      btn.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); });
+    }
+  });
+
+  // 16. PIN setup area
+  const pinSetupArea = document.getElementById('bb-pin-setup-area');
+  if (pinSetupArea) {
+    const sl = document.getElementById('bb-pin-status-label');
+    if (sl) sl.innerHTML = localStorage.getItem('bb-pin-hash')
+      ? 'PIN lock is <strong>enabled</strong>'
+      : 'PIN lock is <strong>disabled</strong>';
+  }
+
+  // 17. Alarm notification status
+  if ('Notification' in window) {
+    const msgs = {
+      granted: '✅ Enabled — alarms fire even when app is in background',
+      denied:  '❌ Blocked — click the 🔒 icon in browser address bar to allow',
+      default: '⚪ Not yet enabled — click the button above'
+    };
+    ['bb-alarm-notif-status', 'bb-notif-status'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = msgs[Notification.permission] || msgs.default;
+    });
+    // Also update enable button
+    const notifBtn = document.getElementById('bb-notif-btn');
+    if (notifBtn) {
+      notifBtn.textContent = Notification.permission === 'granted' ? '✅ Notifications Active' : 'Enable Notifications';
+      notifBtn.disabled = Notification.permission === 'denied';
+    }
+  }
+
+  // 18. LLM provider status dots
+  ['claude','openai','gemini','mistral','cohere'].forEach(id => {
+    const st = document.getElementById('bb-llm-status-' + id);
+    if (st) {
+      const key = localStorage.getItem('bb-llm-key-' + id);
+      st.textContent = key ? '✅ Key saved' : 'No key';
+      st.className = 'bb-llm-status ' + (key ? 'saved' : 'none');
+    }
+  });
+
+  // 19. Profile active state
+  if (typeof bbRenderProfiles === 'function') bbRenderProfiles();
+
+  // 20. Budget currency buttons
+  const curCurrSaved = localStorage.getItem('bb-currency') || 'USD';
+  document.querySelectorAll('.curr-btn').forEach(b => {
+    const fn = b.getAttribute('onclick') || '';
+    const match = fn.match(/'(\w+)'/);
+    if (match) b.classList.toggle('active', match[1] === curCurrSaved);
+  });
+}
+
+// Run wiring on DOMContentLoaded and after delays
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(bbWireAllSettings, 200);
+  setTimeout(bbWireAllSettings, 800);
+  setTimeout(bbWireAllSettings, 2000); // final catch for late-rendered elements
+});
+
+// Also re-wire when settings panel opens
+(function watchSettingsPanel() {
+  const sp = document.getElementById('sp');
+  if (!sp) return;
+  const obs = new MutationObserver(mutations => {
+    mutations.forEach(m => {
+      if (m.type === 'attributes' && m.attributeName === 'class') {
+        if (sp.classList.contains('open') || sp.classList.contains('visible') || !sp.classList.contains('closed')) {
+          setTimeout(bbWireAllSettings, 100);
+        }
+      }
+    });
+  });
+  obs.observe(sp, { attributes: true });
+  // Also hook toggleSettings
+  const _origToggle = window.toggleSettings;
+  if (_origToggle) {
+    window.toggleSettings = function(...args) {
+      _origToggle(...args);
+      setTimeout(bbWireAllSettings, 150);
+    };
+  }
+})();
+
+// ── DOWNLOAD COVERAGE — runtime injection for any missed sections ──
+(function ensureAllDownloads() {
+  const allSecs = [
+    ['sec-wheel','Pregnancy Wheel'], ['sec-fertility','Fertility Guide'],
+    ['sec-blood','Blood & Rh'], ['sec-symptoms','Symptoms Guide'],
+    ['sec-precon','Pre-Conception'], ['sec-timeline','Week Timeline'],
+    ['sec-dev','Baby Development'], ['sec-nutr','Nutrition Guide'],
+    ['sec-couples','Couples Hub'], ['sec-postnat','Postnatal Guide'],
+    ['sec-tools','Pregnancy Tools'], ['sec-names','Baby Names'],
+    ['sec-tracker','Health Tracker'], ['sec-meds','Medication Tracker'],
+    ['sec-faq','FAQ'], ['sec-budget','Budget Planner'],
+    ['sec-surrogacy','Surrogacy Guide'], ['sec-ivf','IVF Guide'],
+    ['sec-postabort','Post-Abortion Recovery'], ['sec-famplan','Family Planning'],
+    ['sec-yoga','Yoga & Intimacy'], ['sec-itinerary','My Itinerary'],
+    ['sec-herbs','Herbal Guide'], ['sec-directory','My Directory'],
+    ['sec-partners','Partners Guide'], ['sec-todo','To-Do Lists'],
+    ['sec-aihub','AI Assistant Hub'], ['sec-alarms','Alarms'],
+    ['sec-profiles','Profiles & Security'], ['sec-music','Music & Audio'],
+  ];
+
+  allSecs.forEach(([id, title]) => {
+    const sec = document.getElementById(id);
+    if (!sec) return;
+    // Check if any download already in first 1500 chars of section
+    const inner = sec.innerHTML.substring(0, 1500);
+    if (inner.includes('bbPrintSection') || inner.includes('bb-dl-btn') || inner.includes('bb-sec-actions')) return;
+
+    // Inject action bar
+    const bar = document.createElement('div');
+    bar.className = 'bb-sec-actions';
+    bar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px;background:var(--bg);border-radius:var(--r-s);border:1px solid var(--bdr);align-items:center';
+    bar.innerHTML = `
+      <button class="bb-dl-btn" onclick="bbPrintSection('${id}','${title}')">📄 PDF</button>
+      <button class="bb-dl-btn" onclick="bbDownloadTxt('${id}','${title}')">📄 TXT</button>
+      <button class="bb-share-btn" onclick="bbShare('${title} — BabyBloom')">📤 Share</button>
+      <span style="margin-left:auto;font-size:.62rem;color:var(--txl);font-weight:700;text-transform:uppercase;letter-spacing:.3px">Export section</span>`;
+    const secHead = sec.querySelector('.sec-head');
+    if (secHead) secHead.after(bar);
+    else sec.insertBefore(bar, sec.firstChild);
+  });
+})();
+
+// ── RESPONSIVE POLISH ──
+(function responsivePolish() {
+  function applyMobile() {
+    const w = window.innerWidth;
+    const isMobile = w < 600;
+    const isTablet = w >= 600 && w < 900;
+
+    // Tile panel
+    const panel = document.getElementById('bb-tile-panel');
+    if (panel) {
+      if (isMobile) {
+        panel.style.width = Math.min(w - 20, 360) + 'px';
+        panel.style.right = '10px';
+        panel.style.left = 'auto';
+      } else {
+        panel.style.width = '340px';
+        panel.style.right = '14px';
+      }
+    }
+
+    // AI chat height
+    const chat = document.getElementById('bb-ai-chat');
+    if (chat) chat.style.maxHeight = isMobile ? '200px' : '300px';
+
+    // Resize canvas cursor trail
+    const trail = document.getElementById('bb-cursor-trail');
+    if (trail && trail.style.display !== 'none') {
+      trail.width = w; trail.height = window.innerHeight;
+    }
+  }
+
+  applyMobile();
+  window.addEventListener('resize', applyMobile, { passive: true });
+})();
+
+// ── GRAPH CHART — ensure correct chart type on render ──
+(function ensureGraphTypes() {
+  const _stepsChart = window.bbRenderStepsChart;
+  window.bbRenderStepsChart = function() {
+    const gTypes = JSON.parse(localStorage.getItem('bb-graph-types') || '{}');
+    const type = gTypes['steps'] || 'bar';
+    if (type === 'line' && typeof bbRenderStepsChartTyped === 'function') {
+      bbRenderStepsChartTyped();
+    } else if (_stepsChart) {
+      _stepsChart();
+    }
+  };
+})();
+
+// ── CURRENCY SAVE ──
+(function patchSetCurr() {
+  const _orig = window.setCurr;
+  if (_orig && !_orig._patched) {
+    window.setCurr = function(c, btn) {
+      localStorage.setItem('bb-currency', c);
+      if (_orig) _orig(c, btn);
+    };
+    window.setCurr._patched = true;
+  }
+})();
+
+// ── GRADIENT THEME — body background fix ──
+(function fixGradientBody() {
+  const t = localStorage.getItem('bb-theme') || 'rose';
+  if (t.startsWith('grad-')) {
+    const gradients = {
+      'grad-aurora': 'linear-gradient(135deg,#E0F7FA,#F0FDFC)',
+      'grad-peach': 'linear-gradient(135deg,#FFF8F5,#FFF0EB)',
+      'grad-twilight': 'linear-gradient(135deg,#F5F0FF,#EAD7F7)',
+      'grad-mango': 'linear-gradient(135deg,#FFFBEB,#FEF3C7)',
+      'grad-mint': 'linear-gradient(135deg,#EBF8FF,#DBEAFE)',
+      'grad-cherry': 'linear-gradient(135deg,#FFF5F7,#FFE4E9)',
+      'grad-earth': 'linear-gradient(135deg,#FDF5EC,#F5DEB3)',
+      'grad-lavender': 'linear-gradient(135deg,#FAF5FF,#F3E8FF)',
+      'grad-night': 'linear-gradient(135deg,#0F2027,#2C5364)',
+      'grad-rose-gold': 'linear-gradient(135deg,#FDF8F7,#FDF0EE)',
+    };
+    document.body.style.background = gradients[t] || '';
+    document.body.style.backgroundAttachment = 'fixed';
+    document.body.style.minHeight = '100vh';
+  }
+})();
+
+// ── CROSS-BROWSER AUDIO UNLOCK (Safari iOS) ──
+(function unlockWebAudio() {
+  let unlocked = false;
+  const unlock = () => {
+    if (unlocked) return;
+    unlocked = true;
+    if (typeof bbGetACtx === 'function') {
+      try { const ctx = bbGetACtx(); if (ctx.state === 'suspended') ctx.resume(); } catch(e) {}
+    }
+  };
+  document.addEventListener('touchstart', unlock, { passive: true, once: true });
+  document.addEventListener('touchend', unlock, { passive: true, once: true });
+  document.addEventListener('mousedown', unlock, { once: true });
+  document.addEventListener('keydown', unlock, { once: true });
+})();
+
+// ── ARIA + ACCESSIBILITY ──
+(function addAria() {
+  // Close buttons
+  document.querySelectorAll('.modal-close, .sp-close').forEach(btn => {
+    btn.setAttribute('aria-label', btn.getAttribute('aria-label') || 'Close');
+  });
+  // Sections main landmark
+  document.querySelectorAll('.sec').forEach((sec, i) => {
+    sec.setAttribute('role', 'region');
+    const h2 = sec.querySelector('h2');
+    if (h2 && !h2.id) { h2.id = 'sec-heading-' + i; sec.setAttribute('aria-labelledby', h2.id); }
+  });
+  // Navigation
+  const nav = document.querySelector('.nav-bar');
+  if (nav) { nav.setAttribute('role', 'navigation'); nav.setAttribute('aria-label', 'Section navigation'); }
+})();
+
+// ── TEST ALL BUTTONS (dev console helper) ──
+window.bbTestAllButtons = function() {
+  const results = [];
+  document.querySelectorAll('button[onclick], button[data-fn]').forEach(btn => {
+    const fn = btn.getAttribute('onclick') || '';
+    const match = fn.match(/^(\w+)\(/);
+    if (match) {
+      const name = match[1];
+      const exists = typeof window[name] === 'function';
+      results.push({ button: btn.textContent.trim().slice(0, 30), fn: name, exists });
+    }
+  });
+  const missing = results.filter(r => !r.exists);
+  console.log('=== BabyBloom Button Test ===');
+  console.log('Total buttons:', results.length);
+  console.log('All functions defined:', missing.length === 0 ? 'YES ✅' : 'NO ❌');
+  if (missing.length) console.table(missing);
+  return { total: results.length, missing: missing.length, ok: results.length - missing.length };
+};
+
+console.log('✅ BabyBloom comprehensive fix loaded. Run bbTestAllButtons() to verify.');
+
 
 </script>
 </body>
-</html>
+</html
